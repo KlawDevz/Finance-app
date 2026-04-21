@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { db } from '../db';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 export type Category = {
   id: string;
@@ -30,127 +32,54 @@ export const defaultCategories: Category[] = [
   { id: '8', name: 'Salaire', emoji: '💰', color: '#30D158' },
 ];
 
-interface FinanceContextType {
-  transactions: Transaction[];
-  categories: Category[];
-  addTransaction: (transaction: Omit<Transaction, 'id' | 'date'>) => void;
-  deleteTransaction: (id: string) => void;
-  addCategory: (category: Omit<Category, 'id'>) => void;
-  deleteCategory: (id: string) => void;
-  clearData: () => void;
-}
-
-const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
-
-const SEED_TRANSACTIONS: Transaction[] = [
-  {
-    id: uuidv4(),
-    amount: 3000,
-    title: 'Salaire Avril',
-    date: new Date().toISOString(),
-    categoryId: '8',
-    type: 'income',
-  },
-  {
-    id: uuidv4(),
-    amount: 54.2,
-    title: 'Uber Eats',
-    date: new Date(Date.now() - 86400000 * 1).toISOString(), // hier
-    categoryId: '2',
-    type: 'expense',
-  },
-  {
-    id: uuidv4(),
-    amount: 120.5,
-    title: 'Carrefour',
-    date: new Date(Date.now() - 86400000 * 2).toISOString(), // avant-hier
-    categoryId: '1',
-    type: 'expense',
-  },
-  {
-    id: uuidv4(),
-    amount: 950,
-    title: 'Loyer',
-    date: new Date(Date.now() - 86400000 * 5).toISOString(),
-    categoryId: '4',
-    type: 'expense',
-  },
-];
-
 export const FinanceProvider = ({ children }: { children: ReactNode }) => {
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('finance_transactions');
-    return saved ? JSON.parse(saved) : SEED_TRANSACTIONS;
-  });
+  return <>{children}</>;
+};
 
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('finance_categories');
-    return saved ? JSON.parse(saved) : defaultCategories;
-  });
+export const useFinance = () => {
+  const transactions = useLiveQuery(() => db.transactions.orderBy('date').reverse().toArray(), []) || [];
+  const categories = useLiveQuery(() => db.categories.toArray(), []) || [];
 
-  useEffect(() => {
-    localStorage.setItem('finance_transactions', JSON.stringify(transactions));
-  }, [transactions]);
-
-  useEffect(() => {
-    localStorage.setItem('finance_categories', JSON.stringify(categories));
-  }, [categories]);
-
-  const addTransaction = (transaction: Omit<Transaction, 'id' | 'date'>) => {
+  const addTransaction = async (transaction: Omit<Transaction, 'id' | 'date'>) => {
     const newTransaction: Transaction = {
       ...transaction,
       id: uuidv4(),
       date: new Date().toISOString(),
     };
-    setTransactions((prev) => [newTransaction, ...prev]);
+    await db.transactions.add(newTransaction);
   };
 
-  const deleteTransaction = (id: string) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
+  const deleteTransaction = async (id: string) => {
+    await db.transactions.delete(id);
   };
 
-  const addCategory = (category: Omit<Category, 'id'>) => {
+  const addCategory = async (category: Omit<Category, 'id'>) => {
     const newCategory: Category = {
       ...category,
       id: uuidv4(),
     };
-    setCategories((prev) => [...prev, newCategory]);
+    await db.categories.add(newCategory);
   };
 
-  const deleteCategory = (id: string) => {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
+  const deleteCategory = async (id: string) => {
+    await db.categories.delete(id);
   };
 
-  const clearData = () => {
+  const clearData = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer toutes les données ?")) {
-      setTransactions([]);
-      setCategories(defaultCategories);
-      localStorage.removeItem('finance_transactions');
-      localStorage.removeItem('finance_categories');
+      await db.transactions.clear();
+      await db.categories.clear();
+      await db.categories.bulkAdd(defaultCategories);
     }
   };
 
-  return (
-    <FinanceContext.Provider
-      value={{
-        transactions,
-        categories,
-        addTransaction,
-        deleteTransaction,
-        addCategory,
-        deleteCategory,
-        clearData,
-      }}
-    >
-      {children}
-    </FinanceContext.Provider>
-  );
-};
-
-export const useFinance = () => {
-  const context = useContext(FinanceContext);
-  if (context === undefined) {
-    throw new Error('useFinance must be used within a FinanceProvider');
-  }
-  return context;
+  return {
+    transactions,
+    categories,
+    addTransaction,
+    deleteTransaction,
+    addCategory,
+    deleteCategory,
+    clearData,
+  };
 };

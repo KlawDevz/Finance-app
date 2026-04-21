@@ -2,28 +2,31 @@ import { useState } from 'react';
 import { useFinance, defaultCategories } from '../context/FinanceContext';
 import { Download, Trash2, Plus } from 'lucide-react';
 import { cn } from '../utils/cn';
+import { db } from '../db';
+import 'dexie-export-import';
 
 export function Settings() {
-  const { categories, addCategory, deleteCategory, clearData, transactions } = useFinance();
+  const { categories, addCategory, deleteCategory, clearData } = useFinance();
   const [newCatName, setNewCatName] = useState('');
   const [newCatEmoji, setNewCatEmoji] = useState('📦');
   const [newCatColor, setNewCatColor] = useState('#5E5CE6');
   const [showAddCat, setShowAddCat] = useState(false);
 
-  const handleExport = () => {
-    const data = {
-      transactions,
-      categories
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `finance_export_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleExport = async () => {
+    try {
+      const blob = await db.export({ prettyJson: true });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `finance_export_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export database:', error);
+      alert('Erreur lors de l\'exportation de la base de données.');
+    }
   };
 
   const handleAddCategory = () => {

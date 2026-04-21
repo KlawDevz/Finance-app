@@ -2,12 +2,24 @@ import { useFinance } from '../context/FinanceContext';
 import { format, isToday, isYesterday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../utils/cn';
+import { useState, useMemo } from 'react';
+import Fuse from 'fuse.js';
 
 export function Transactions() {
   const { transactions, categories } = useFinance();
+  const [search, setSearch] = useState('');
+
+  const fuse = useMemo(() => new Fuse(transactions, {
+    keys: ['title', 'amount'],
+    threshold: 0.3,
+  }), [transactions]);
+
+  const filteredTransactions = search 
+    ? fuse.search(search).map(result => result.item)
+    : transactions;
 
   // Group transactions by date
-  const groupedTransactions = transactions.reduce((groups, transaction) => {
+  const groupedTransactions = filteredTransactions.reduce((groups, transaction) => {
     const date = transaction.date.split('T')[0];
     if (!groups[date]) {
       groups[date] = [];
@@ -28,11 +40,20 @@ export function Transactions() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-      <h1 className="text-3xl font-bold tracking-tight">Historique</h1>
+      <div className="flex flex-col gap-4">
+        <h1 className="text-3xl font-bold tracking-tight">Historique</h1>
+        <input 
+          type="text" 
+          placeholder="Rechercher une transaction..." 
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all backdrop-blur-md"
+        />
+      </div>
       
       {sortedDates.length === 0 ? (
         <div className="text-center py-20 text-muted">
-          <p>Aucune transaction pour le moment.</p>
+          <p>{search ? 'Aucune transaction trouvée.' : 'Aucune transaction pour le moment.'}</p>
         </div>
       ) : (
         <div className="space-y-8">
