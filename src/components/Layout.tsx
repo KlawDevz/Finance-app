@@ -123,8 +123,9 @@ const NavIcon = ({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
 // Add Transaction Modal Content
 function AddTransactionModal({ onClose }: { onClose: () => void }) {
   const [amount, setAmount] = useState('0');
-  const [step, setStep] = useState<'numpad' | 'category'>('numpad');
-  const { categories, addTransaction } = useFinance();
+  const [step, setStep] = useState<'numpad' | 'category' | 'account'>('numpad');
+  const [selectedCategory, setSelectedCategory] = useState<{id: string, type: 'income' | 'expense'} | null>(null);
+  const { categories, accounts, addTransaction } = useFinance();
 
   const handleNumpadClick = (val: string) => {
     if (val === 'DEL') {
@@ -137,15 +138,32 @@ function AddTransactionModal({ onClose }: { onClose: () => void }) {
   };
 
   const handleCategorySelect = (categoryId: string, type: 'income' | 'expense') => {
+    setSelectedCategory({ id: categoryId, type });
+    if (accounts.length <= 1) {
+      // If only one account (or none but default exists), auto select and save
+      saveTransaction(categoryId, type, accounts[0]?.id || 'default');
+    } else {
+      setStep('account');
+    }
+  };
+
+  const saveTransaction = (categoryId: string, type: 'income' | 'expense', accountId: string) => {
     const numAmount = parseFloat(amount);
     if (numAmount > 0) {
       addTransaction({
         amount: numAmount,
         title: categories.find(c => c.id === categoryId)?.name || 'Dépense',
         categoryId,
-        type
+        type,
+        accountId
       });
       onClose();
+    }
+  };
+
+  const handleAccountSelect = (accountId: string) => {
+    if (selectedCategory) {
+      saveTransaction(selectedCategory.id, selectedCategory.type, accountId);
     }
   };
 
@@ -200,12 +218,12 @@ function AddTransactionModal({ onClose }: { onClose: () => void }) {
                   Suivant
                 </button>
               </motion.div>
-            ) : (
+            ) : step === 'category' ? (
               <motion.div 
                 key="categories"
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 50 }}
+                exit={{ opacity: 0, x: -50 }}
                 className="h-full overflow-y-auto pb-6"
               >
                 <h3 className="text-xl font-bold mb-4">Sélectionner une catégorie</h3>
@@ -223,6 +241,33 @@ function AddTransactionModal({ onClose }: { onClose: () => void }) {
                         {cat.emoji}
                       </div>
                       <span className="text-xs text-muted font-medium text-center truncate w-full">{cat.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="accounts"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 50 }}
+                className="h-full overflow-y-auto pb-6"
+              >
+                <h3 className="text-xl font-bold mb-4">Sélectionner le compte</h3>
+                <div className="space-y-3">
+                  {accounts.map((acc) => (
+                    <button
+                      key={acc.id}
+                      onClick={() => handleAccountSelect(acc.id)}
+                      className="flex items-center w-full gap-4 p-4 rounded-2xl bg-white/5 active:bg-white/10 transition-colors"
+                    >
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-white/10">
+                        {acc.icon}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="font-semibold text-lg">{acc.name}</div>
+                        <div className="text-sm text-white/50">Solde: {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(acc.balance)}</div>
+                      </div>
                     </button>
                   ))}
                 </div>
