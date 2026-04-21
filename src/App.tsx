@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { Wallet, TrendingUp, TrendingDown, Command } from 'lucide-react';
 import { Omnibar } from './components/Omnibar';
 
@@ -122,7 +122,7 @@ function App() {
                 <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
                   {
                     categoryData.map((entry, index) => (
-                      <cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))
                   }
                 </Bar>

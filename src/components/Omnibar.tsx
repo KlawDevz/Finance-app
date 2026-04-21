@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Command, Sparkles, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Command, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export function Omnibar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
