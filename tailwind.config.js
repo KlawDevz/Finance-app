@@ -7,13 +7,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0A0A0A',
-        surface: 'rgba(255, 255, 255, 0.02)',
-        primary: '#00FF9D',
-        accent: '#FF3366',
+        background: '#000000',
+        surface: 'rgba(255, 255, 255, 0.03)',
+        surfaceBorder: 'rgba(255, 255, 255, 0.05)',
+        primary: '#FFFFFF',
+        accent: '#5E5CE6', // Copilot/Monarch vibe purple/blue
+        success: '#32D74B', // iOS Green
+        danger: '#FF453A', // iOS Red
+        muted: '#8E8E93',
       },
       fontFamily: {
-        mono: ['"Space Grotesk"', '"JetBrains Mono"', 'monospace'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Inter"', 'sans-serif'],
+        mono: ['"SF Mono"', '"JetBrains Mono"', 'monospace'],
       }
     },
   },

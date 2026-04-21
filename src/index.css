@@ -4,12 +4,23 @@
 
 @layer base {
   body {
-    @apply bg-background text-white antialiased selection:bg-primary/30 selection:text-primary;
+    @apply bg-background text-primary font-sans antialiased;
+    /* Hide scrollbar for a cleaner look */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  body::-webkit-scrollbar {
+    display: none;
   }
 }
 
-@layer utilities {
-  .glass-card {
-    @apply bg-surface backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl;
+@layer components {
+  .glass-panel {
+    @apply bg-surface border border-surfaceBorder rounded-2xl backdrop-blur-xl;
+  }
+  
+  .glass-input {
+    @apply bg-white/[0.05] border border-white/[0.1] rounded-xl text-primary placeholder-muted focus:outline-none focus:ring-1 focus:ring-white/[0.2] focus:border-white/[0.2] transition-all;
   }
 }
