@@ -7,16 +7,43 @@
     @apply bg-black text-white antialiased selection:bg-white/30 overscroll-none;
     -webkit-tap-highlight-color: transparent;
   }
+  
+  /* Force squircles globally on rounded classes */
+  .rounded-2xl {
+    border-radius: 16px;
+    border-curve: continuous;
+    -webkit-border-curve: continuous;
+  }
+  
+  .rounded-3xl {
+    border-radius: 24px;
+    border-curve: continuous;
+    -webkit-border-curve: continuous;
+  }
+  
+  .rounded-full {
+    border-radius: 9999px;
+    border-curve: continuous;
+    -webkit-border-curve: continuous;
+  }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply relative bg-white/[0.03] border-t border-white/[0.08] border-b border-black/80 shadow-[0_12px_40px_rgba(0,0,0,0.6),_0_2px_4px_rgba(0,0,0,0.4)] backdrop-blur-3xl overflow-hidden rounded-3xl z-10;
+    @apply relative bg-white/[0.04] border-t border-white/[0.12] border-l border-white/[0.05] border-b border-black/80 border-r border-black/50 shadow-[0_16px_40px_rgba(0,0,0,0.5),_0_2px_10px_rgba(0,0,0,0.4),_inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-3xl overflow-hidden rounded-3xl z-10 transition-all duration-300;
+  }
+  
+  .glass-panel:active {
+    @apply scale-[0.98] shadow-[0_8px_20px_rgba(0,0,0,0.4),_inset_0_1px_0_rgba(255,255,255,0.05)];
   }
   
   .glass-panel::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent opacity-60 pointer-events-none rounded-3xl z-[-1];
+    @apply absolute inset-0 bg-gradient-to-br from-white/[0.1] via-transparent to-black/20 opacity-80 pointer-events-none rounded-3xl z-[-1];
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60;
   }
 }
 

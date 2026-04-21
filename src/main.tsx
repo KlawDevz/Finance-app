@@ -13,15 +13,16 @@ function App() {
   const [activeTab, setActiveTab] = useState('home');
 
   const pageVariants = {
-    initial: { opacity: 0, y: 10 },
-    in: { opacity: 1, y: 0 },
-    out: { opacity: 0, y: -10 }
+    initial: { opacity: 0, scale: 0.96, filter: 'blur(8px)' },
+    in: { opacity: 1, scale: 1, filter: 'blur(0px)' },
+    out: { opacity: 0, scale: 1.04, filter: 'blur(8px)' }
   };
 
   const pageTransition = {
-    type: 'tween' as const,
-    ease: 'anticipate' as const,
-    duration: 0.3
+    type: 'spring' as const,
+    stiffness: 300,
+    damping: 30,
+    mass: 1.5
   };
 
   return (

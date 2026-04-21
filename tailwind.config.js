@@ -16,6 +16,11 @@ export default {
         danger: '#FF453A', // iOS Red
         muted: '#8E8E93',
       },
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+        '4xl': '2rem', // Squircles
+      },
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Inter"', 'sans-serif'],
         mono: ['"SF Mono"', '"JetBrains Mono"', 'monospace'],

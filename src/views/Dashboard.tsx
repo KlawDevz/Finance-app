@@ -42,13 +42,14 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-      <header>
-        <h1 className="text-sm font-medium text-white/60 uppercase tracking-widest mb-1">Reste à vivre</h1>
+      <header className="flex flex-col gap-1 z-10 pt-4 px-2">
+        <p className="text-white/60 font-medium tracking-wide text-[15px] mb-1">Bonjour Kram</p>
         <div className="flex items-end gap-2">
-          <span className="text-5xl font-semibold tracking-tighter text-white drop-shadow-sm font-sans">
+          <span className="text-[52px] leading-none font-bold tracking-tighter text-white font-sans drop-shadow-[0_4px_12px_rgba(255,255,255,0.15)] flex items-start">
             {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(balance)}
           </span>
         </div>
+        <p className="text-white/40 text-sm font-medium mt-1">Votre solde actuel</p>
       </header>
 
       {/* Chart */}
@@ -101,9 +102,9 @@ export function Dashboard() {
            <div className="flex justify-between items-center mb-2">
              <p className="text-white/80 text-sm font-medium tracking-tight flex items-center gap-2">
                <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
-               Charges fixes à venir
+               Prévu pour demain
              </p>
-             <p className="text-xs text-white/40">Reste du mois</p>
+             <p className="text-xs text-white/40">Dépenses récurrentes</p>
            </div>
            <div className="flex items-end justify-between">
              <p className="text-3xl font-semibold tracking-tighter text-white font-sans">

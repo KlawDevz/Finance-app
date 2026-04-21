@@ -33,13 +33,13 @@ export function Layout({ children, activeTab, setActiveTab }: LayoutProps) {
           
           <NavIcon 
             icon={<Home />} 
-            label="Home" 
+            label="Accueil" 
             isActive={activeTab === 'home'} 
             onClick={() => setActiveTab('home')} 
           />
           <NavIcon 
             icon={<ScrollText />} 
-            label="Transactions" 
+            label="Historique" 
             isActive={activeTab === 'transactions'} 
             onClick={() => setActiveTab('transactions')} 
           />
@@ -49,13 +49,13 @@ export function Layout({ children, activeTab, setActiveTab }: LayoutProps) {
 
           <NavIcon 
             icon={<PieChart />} 
-            label="Stats" 
+            label="Analyses" 
             isActive={activeTab === 'stats'} 
             onClick={() => setActiveTab('stats')} 
           />
           <NavIcon 
             icon={<Settings />} 
-            label="Settings" 
+            label="Réglages" 
             isActive={activeTab === 'settings'} 
             onClick={() => setActiveTab('settings')} 
           />
@@ -63,14 +63,21 @@ export function Layout({ children, activeTab, setActiveTab }: LayoutProps) {
           {/* Floating Action Button (FAB) */}
           <div className="absolute left-1/2 -top-8 -translate-x-1/2">
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={(e) => {
+                e.preventDefault();
+                if (navigator.vibrate) navigator.vibrate(10);
+                setIsModalOpen(true);
+              }}
+              onTouchStart={() => {
+                if (navigator.vibrate) navigator.vibrate(10);
+              }}
               className={cn(
-                "w-[68px] h-[68px] rounded-[2rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.3)] border border-white/20",
-                "transition-all duration-300 active:scale-95",
-                isModalOpen && "rotate-45 bg-gradient-to-br from-neutral-800 to-neutral-900 border-white/10 shadow-none"
+                "w-[68px] h-[68px] rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_8px_30px_rgba(94,92,230,0.5)] border border-white/20",
+                "transition-all duration-300 active:scale-90 hover:shadow-[0_12px_40px_rgba(94,92,230,0.7)] touch-manipulation",
+                isModalOpen && "rotate-45 bg-gradient-to-br from-neutral-800 to-neutral-900 border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.8)]"
               )}
             >
-              <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-t from-black/30 via-transparent to-white/20 pointer-events-none" />
               {isModalOpen ? <X size={32} className="text-white relative z-10" /> : <Plus size={36} className="text-white drop-shadow-md relative z-10" />}
             </button>
           </div>
@@ -107,13 +114,20 @@ export function Layout({ children, activeTab, setActiveTab }: LayoutProps) {
 
 const NavIcon = ({ icon, label, isActive, onClick }: { icon: React.ReactNode, label: string, isActive: boolean, onClick: () => void }) => (
   <button 
-    onClick={onClick}
+    onClick={(e) => {
+      e.preventDefault();
+      if (navigator.vibrate) navigator.vibrate(5);
+      onClick();
+    }}
+    onTouchStart={() => {
+      if (navigator.vibrate) navigator.vibrate(5);
+    }}
     className={cn(
-      "flex flex-col items-center justify-center w-12 gap-1 transition-colors",
-      isActive ? "text-primary" : "text-muted"
+      "flex flex-col items-center justify-center w-12 gap-1 transition-all duration-300 active:scale-90 touch-manipulation",
+      isActive ? "text-primary" : "text-muted hover:text-white/70"
     )}
   >
-    <div className={cn("transition-transform duration-300", isActive && "scale-110")}>
+    <div className={cn("transition-all duration-400 ease-out", isActive && "scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]")}>
       {React.cloneElement(icon as React.ReactElement<any>, { size: 24, strokeWidth: isActive ? 2.5 : 2 })}
     </div>
     <span className="text-[10px] font-medium tracking-tight">{label}</span>
