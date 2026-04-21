@@ -4,11 +4,11 @@ import { format, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export function Dashboard() {
-  const { transactions, accounts } = useFinance();
+  const { transactions } = useFinance();
 
   const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
   const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
-  const globalBalance = accounts.reduce((acc, account) => acc + account.balance, 0);
+  const balance = totalIncome - totalExpense;
 
   // Generate chart data for the last 30 days
   const chartData = Array.from({ length: 30 }).map((_, i) => {
@@ -27,38 +27,23 @@ export function Dashboard() {
     // A real app would calculate actual historical balance, but for MVP we approximate
     return {
       date: format(d, 'd MMM', { locale: fr }),
-      balance: Math.max(0, globalBalance - (30-i) * 20 + Math.random() * 50) // Fake curve for nice visual
+      balance: Math.max(0, balance - (30-i) * 20 + Math.random() * 50) // Fake curve for nice visual
     };
   });
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       <header>
-        <h1 className="text-sm font-medium text-white/60 uppercase tracking-widest mb-1">Solde Total</h1>
+        <h1 className="text-sm font-medium text-white/60 uppercase tracking-widest mb-1">Reste à vivre</h1>
         <div className="flex items-end gap-2">
           <span className="text-5xl font-semibold tracking-tighter text-white drop-shadow-sm font-sans">
-            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(globalBalance)}
+            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(balance)}
           </span>
         </div>
       </header>
-      
-      {/* Wallets Carousel */}
-      <div className="-mx-4 px-4 flex gap-4 overflow-x-auto snap-x hide-scrollbar pb-2">
-        {accounts.map(account => (
-          <div key={account.id} className="glass-panel min-w-[160px] p-4 rounded-3xl snap-center shrink-0 flex flex-col justify-between h-[120px]">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">{account.icon}</span>
-              <span className="text-sm font-medium text-white/80 truncate">{account.name}</span>
-            </div>
-            <div className="text-2xl font-semibold tracking-tighter text-white font-sans">
-              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(account.balance)}
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* Chart */}
-      <div className="h-64 w-full -mx-4 px-4 mt-6">
+      <div className="h-64 w-full -mx-4 px-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>

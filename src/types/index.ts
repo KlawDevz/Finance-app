@@ -7,13 +7,6 @@ export interface Category {
   color: string;
 }
 
-export interface Account {
-  id: string;
-  name: string;
-  balance: number;
-  icon: string;
-}
-
 export interface Subscription {
   id: string;
   title: string;
@@ -29,7 +22,6 @@ export interface Transaction {
   categoryId: string;
   date: string;
   type: TransactionType;
-  accountId: string;
 }
 
 export const CATEGORIES: Category[] = [
