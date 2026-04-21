@@ -4,23 +4,30 @@
 
 @layer base {
   body {
-    @apply bg-background text-primary font-sans antialiased;
-    /* Hide scrollbar for a cleaner look */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-  
-  body::-webkit-scrollbar {
-    display: none;
+    @apply bg-black text-white antialiased selection:bg-white/30 overscroll-none;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
-@layer components {
-  .glass-panel {
-    @apply bg-surface border border-surfaceBorder rounded-2xl backdrop-blur-xl;
-  }
-  
-  .glass-input {
-    @apply bg-white/[0.05] border border-white/[0.1] rounded-xl text-primary placeholder-muted focus:outline-none focus:ring-1 focus:ring-white/[0.2] focus:border-white/[0.2] transition-all;
-  }
+/* Utilities for iOS safe areas */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Smooth scrolling but hide scrollbar */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

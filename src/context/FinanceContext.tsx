@@ -1,73 +1,147 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import type { Transaction, Category } from '../types';
-import { CATEGORIES } from '../types';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+export type Category = {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+};
+
+export type TransactionType = 'income' | 'expense';
+
+export type Transaction = {
+  id: string;
+  amount: number;
+  title: string;
+  date: string; // ISO string
+  categoryId: string;
+  type: TransactionType;
+};
+
+export const defaultCategories: Category[] = [
+  { id: '1', name: 'Courses', emoji: '🛒', color: '#FF9F0A' }, // iOS Orange
+  { id: '2', name: 'Resto', emoji: '🍔', color: '#FF453A' }, // iOS Red
+  { id: '3', name: 'Transport', emoji: '🚗', color: '#5E5CE6' }, // iOS Indigo
+  { id: '4', name: 'Logement', emoji: '🏠', color: '#0A84FF' }, // iOS Blue
+  { id: '5', name: 'Loisirs', emoji: '🎉', color: '#BF5AF2' }, // iOS Purple
+  { id: '6', name: 'Tech', emoji: '⚡', color: '#32D74B' }, // iOS Green
+  { id: '7', name: 'Santé', emoji: '💊', color: '#FF375F' }, // iOS Pink
+  { id: '8', name: 'Salaire', emoji: '💰', color: '#30D158' },
+];
 
 interface FinanceContextType {
   transactions: Transaction[];
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  categories: Category[];
+  addTransaction: (transaction: Omit<Transaction, 'id' | 'date'>) => void;
   deleteTransaction: (id: string) => void;
-  getCategory: (id: string) => Category | undefined;
-  balance: number;
-  totalIncome: number;
-  totalExpense: number;
+  addCategory: (category: Omit<Category, 'id'>) => void;
+  deleteCategory: (id: string) => void;
+  clearData: () => void;
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
-// Some mock data for the preview
-const MOCK_DATA: Transaction[] = [
-  { id: '1', amount: 3200, title: 'Salary', categoryId: 'income', date: new Date().toISOString(), type: 'income' },
-  { id: '2', amount: 15.50, title: 'Uber Eats', categoryId: 'food', date: new Date().toISOString(), type: 'expense' },
-  { id: '3', amount: 45.00, title: 'AWS Cloud', categoryId: 'software', date: new Date(Date.now() - 86400000).toISOString(), type: 'expense' },
-  { id: '4', amount: 120.00, title: 'Groceries', categoryId: 'shopping', date: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'expense' },
+const SEED_TRANSACTIONS: Transaction[] = [
+  {
+    id: uuidv4(),
+    amount: 3000,
+    title: 'Salaire Avril',
+    date: new Date().toISOString(),
+    categoryId: '8',
+    type: 'income',
+  },
+  {
+    id: uuidv4(),
+    amount: 54.2,
+    title: 'Uber Eats',
+    date: new Date(Date.now() - 86400000 * 1).toISOString(), // hier
+    categoryId: '2',
+    type: 'expense',
+  },
+  {
+    id: uuidv4(),
+    amount: 120.5,
+    title: 'Carrefour',
+    date: new Date(Date.now() - 86400000 * 2).toISOString(), // avant-hier
+    categoryId: '1',
+    type: 'expense',
+  },
+  {
+    id: uuidv4(),
+    amount: 950,
+    title: 'Loyer',
+    date: new Date(Date.now() - 86400000 * 5).toISOString(),
+    categoryId: '4',
+    type: 'expense',
+  },
 ];
 
-export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const FinanceProvider = ({ children }: { children: ReactNode }) => {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     const saved = localStorage.getItem('finance_transactions');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return MOCK_DATA;
-      }
-    }
-    return MOCK_DATA;
+    return saved ? JSON.parse(saved) : SEED_TRANSACTIONS;
+  });
+
+  const [categories, setCategories] = useState<Category[]>(() => {
+    const saved = localStorage.getItem('finance_categories');
+    return saved ? JSON.parse(saved) : defaultCategories;
   });
 
   useEffect(() => {
     localStorage.setItem('finance_transactions', JSON.stringify(transactions));
   }, [transactions]);
 
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
+  useEffect(() => {
+    localStorage.setItem('finance_categories', JSON.stringify(categories));
+  }, [categories]);
+
+  const addTransaction = (transaction: Omit<Transaction, 'id' | 'date'>) => {
     const newTransaction: Transaction = {
       ...transaction,
-      id: crypto.randomUUID(),
+      id: uuidv4(),
+      date: new Date().toISOString(),
     };
-    setTransactions((prev) => [newTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    setTransactions((prev) => [newTransaction, ...prev]);
   };
 
   const deleteTransaction = (id: string) => {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const getCategory = (id: string) => CATEGORIES.find(c => c.id === id);
+  const addCategory = (category: Omit<Category, 'id'>) => {
+    const newCategory: Category = {
+      ...category,
+      id: uuidv4(),
+    };
+    setCategories((prev) => [...prev, newCategory]);
+  };
 
-  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-  const balance = totalIncome - totalExpense;
+  const deleteCategory = (id: string) => {
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const clearData = () => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer toutes les données ?")) {
+      setTransactions([]);
+      setCategories(defaultCategories);
+      localStorage.removeItem('finance_transactions');
+      localStorage.removeItem('finance_categories');
+    }
+  };
 
   return (
-    <FinanceContext.Provider value={{
-      transactions,
-      addTransaction,
-      deleteTransaction,
-      getCategory,
-      balance,
-      totalIncome,
-      totalExpense
-    }}>
+    <FinanceContext.Provider
+      value={{
+        transactions,
+        categories,
+        addTransaction,
+        deleteTransaction,
+        addCategory,
+        deleteCategory,
+        clearData,
+      }}
+    >
       {children}
     </FinanceContext.Provider>
   );
