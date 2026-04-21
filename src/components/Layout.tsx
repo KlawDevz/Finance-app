@@ -14,14 +14,21 @@ export function Layout({ children, activeTab, setActiveTab }: LayoutProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   return (
-    <div className="min-h-screen bg-black text-primary overflow-hidden font-sans pb-24">
+    <div className="min-h-screen bg-black text-primary overflow-hidden font-sans pb-24 relative">
+      {/* Background Vibrancy Mesh/Blobs */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-20%] w-[70vw] h-[70vw] bg-indigo-900/40 rounded-full mix-blend-screen filter blur-3xl opacity-70 animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute top-[40%] right-[-10%] w-[60vw] h-[60vw] bg-purple-900/30 rounded-full mix-blend-screen filter blur-3xl opacity-60 animate-pulse" style={{ animationDuration: '10s' }} />
+        <div className="absolute bottom-[-20%] left-[10%] w-[80vw] h-[80vw] bg-blue-900/30 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-pulse" style={{ animationDuration: '12s' }} />
+      </div>
+
       {/* Main Content Area */}
-      <main className="h-full overflow-y-auto px-4 pt-12">
+      <main className="h-full overflow-y-auto px-4 pt-12 relative z-10">
         {children}
       </main>
 
       {/* Glassmorphism Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 h-24 bg-black/40 backdrop-blur-3xl border-t border-white/10 z-40 pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 h-24 bg-white/[0.01] backdrop-blur-2xl border-t border-white/[0.08] shadow-[0_-8px_32px_0_rgba(0,0,0,0.5)] z-40 pb-safe before:absolute before:inset-0 before:bg-gradient-to-t before:from-transparent before:to-white/[0.02] before:pointer-events-none">
         <div className="flex justify-around items-center h-full max-w-md mx-auto px-6 relative">
           
           <NavIcon 
@@ -38,7 +45,7 @@ export function Layout({ children, activeTab, setActiveTab }: LayoutProps) {
           />
 
           {/* FAB Placeholder for spacing */}
-          <div className="w-14" /> 
+          <div className="w-16" /> 
 
           <NavIcon 
             icon={<PieChart />} 
@@ -54,16 +61,17 @@ export function Layout({ children, activeTab, setActiveTab }: LayoutProps) {
           />
 
           {/* Floating Action Button (FAB) */}
-          <div className="absolute left-1/2 -top-6 -translate-x-1/2">
+          <div className="absolute left-1/2 -top-8 -translate-x-1/2">
             <button
               onClick={() => setIsModalOpen(true)}
               className={cn(
-                "w-16 h-16 rounded-full bg-accent flex items-center justify-center shadow-[0_0_30px_rgba(94,92,230,0.4)]",
-                "transition-transform active:scale-95",
-                isModalOpen && "rotate-45 bg-surface border border-surfaceBorder shadow-none"
+                "w-[68px] h-[68px] rounded-[2rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.3)] border border-white/20",
+                "transition-all duration-300 active:scale-95",
+                isModalOpen && "rotate-45 bg-gradient-to-br from-neutral-800 to-neutral-900 border-white/10 shadow-none"
               )}
             >
-              {isModalOpen ? <X size={28} className="text-white" /> : <Plus size={32} className="text-white" />}
+              <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+              {isModalOpen ? <X size={32} className="text-white relative z-10" /> : <Plus size={36} className="text-white drop-shadow-md relative z-10" />}
             </button>
           </div>
         </div>

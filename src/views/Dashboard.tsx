@@ -34,9 +34,9 @@ export function Dashboard() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       <header>
-        <h1 className="text-sm font-medium text-muted uppercase tracking-wider mb-2">Reste à vivre</h1>
+        <h1 className="text-sm font-medium text-white/60 uppercase tracking-widest mb-1">Reste à vivre</h1>
         <div className="flex items-end gap-2">
-          <span className="text-5xl font-black tracking-tighter">
+          <span className="text-5xl font-semibold tracking-tighter text-white drop-shadow-sm font-sans">
             {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(balance)}
           </span>
         </div>
@@ -71,21 +71,21 @@ export function Dashboard() {
       </div>
 
       {/* Quick Summary Cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white/5 rounded-3xl p-5 border border-white/5">
-          <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center mb-3 text-success">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7-7-7 7"/></svg>
+      <div className="grid grid-cols-2 gap-4 mt-6">
+        <div className="glass-panel rounded-3xl p-5">
+          <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center mb-3 text-success shadow-[0_0_15px_rgba(50,215,75,0.2)]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7-7-7 7"/></svg>
           </div>
-          <p className="text-muted text-sm font-medium mb-1">Revenus</p>
-          <p className="text-xl font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(totalIncome)}</p>
+          <p className="text-white/60 text-sm font-medium mb-1 tracking-tight">Revenus</p>
+          <p className="text-2xl font-semibold tracking-tighter text-white/90 font-sans">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(totalIncome)}</p>
         </div>
         
-        <div className="bg-white/5 rounded-3xl p-5 border border-white/5">
-          <div className="w-10 h-10 rounded-full bg-danger/20 flex items-center justify-center mb-3 text-danger">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7 7 7-7"/></svg>
+        <div className="glass-panel rounded-3xl p-5">
+          <div className="w-10 h-10 rounded-full bg-danger/20 flex items-center justify-center mb-3 text-danger shadow-[0_0_15px_rgba(255,69,58,0.2)]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7 7 7-7"/></svg>
           </div>
-          <p className="text-muted text-sm font-medium mb-1">Dépenses</p>
-          <p className="text-xl font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(totalExpense)}</p>
+          <p className="text-white/60 text-sm font-medium mb-1 tracking-tight">Dépenses</p>
+          <p className="text-2xl font-semibold tracking-tighter text-white/90 font-sans">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(totalExpense)}</p>
         </div>
       </div>
     </div>
