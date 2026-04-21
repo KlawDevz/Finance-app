@@ -28,6 +28,7 @@ export interface Transaction {
   categoryId: string;
   date: string;
   type: TransactionType;
+  tags?: string[];
 }
 
 export const CATEGORIES: Category[] = [

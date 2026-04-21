@@ -9,6 +9,13 @@ const db = new Dexie('FinanceDB') as Dexie & {
   budgets: EntityTable<Budget, 'id'>;
 };
 
+db.version(4).stores({
+  transactions: 'id, title, amount, categoryId, type, date, *tags',
+  categories: 'id, name, emoji, color',
+  subscriptions: 'id, title, amount, categoryId, billingDay',
+  budgets: 'id, categoryId, amount'
+});
+
 db.version(3).stores({
   transactions: 'id, title, amount, categoryId, type, date',
   categories: 'id, name, emoji, color',

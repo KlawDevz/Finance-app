@@ -132,7 +132,15 @@ function AddTransactionModal({ onClose }: { onClose: () => void }) {
     } else if (val === ',') {
       if (!amount.includes('.')) setAmount(prev => prev + '.');
     } else {
-      setAmount(prev => prev === '0' ? val : prev + val);
+      setAmount(prev => {
+        if (prev === '0') return val;
+        // Prevent more than 2 decimal places
+        if (prev.includes('.')) {
+          const [, decimal] = prev.split('.');
+          if (decimal && decimal.length >= 2) return prev;
+        }
+        return prev + val;
+      });
     }
   };
 
@@ -143,7 +151,8 @@ function AddTransactionModal({ onClose }: { onClose: () => void }) {
         amount: numAmount,
         title: categories.find(c => c.id === categoryId)?.name || 'Dépense',
         categoryId,
-        type
+        type,
+        tags: [] // Empty tags by default, can be edited later
       });
       onClose();
     }
@@ -181,8 +190,19 @@ function AddTransactionModal({ onClose }: { onClose: () => void }) {
                   {['1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '0', 'DEL'].map((btn) => (
                     <button
                       key={btn}
-                      onClick={() => handleNumpadClick(btn)}
-                      className="bg-white/5 active:bg-white/10 rounded-2xl text-2xl font-medium transition-colors flex items-center justify-center"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // Pre-emptively apply haptic feedback pattern using browser API if available
+                        if (navigator.vibrate) navigator.vibrate(10);
+                        handleNumpadClick(btn);
+                      }}
+                      // Ultra-responsive numpad via touch events for zero latency
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        if (navigator.vibrate) navigator.vibrate(10);
+                        handleNumpadClick(btn);
+                      }}
+                      className="bg-white/5 active:bg-white/20 active:scale-95 rounded-2xl text-2xl font-medium transition-all duration-75 flex items-center justify-center touch-manipulation"
                     >
                       {btn}
                     </button>

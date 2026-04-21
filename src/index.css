@@ -11,12 +11,12 @@
 
 @layer utilities {
   .glass-panel {
-    @apply relative bg-white/[0.02] border-t border-white/[0.08] border-b border-black/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] backdrop-blur-3xl overflow-hidden;
+    @apply relative bg-white/[0.03] border-t border-white/[0.08] border-b border-black/80 shadow-[0_12px_40px_rgba(0,0,0,0.6),_0_2px_4px_rgba(0,0,0,0.4)] backdrop-blur-3xl overflow-hidden rounded-3xl z-10;
   }
   
   .glass-panel::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent opacity-50 pointer-events-none;
+    @apply absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent opacity-60 pointer-events-none rounded-3xl z-[-1];
   }
 }
 

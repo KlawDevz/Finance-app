@@ -30,12 +30,17 @@ export const useFinance = () => {
       ...transaction,
       id: uuidv4(),
       date: new Date().toISOString(),
+      tags: transaction.tags || [],
     };
     await db.transactions.add(newTransaction);
   };
 
   const deleteTransaction = async (id: string) => {
     await db.transactions.delete(id);
+  };
+
+  const deleteTransactions = async (ids: string[]) => {
+    await db.transactions.bulkDelete(ids);
   };
 
   const addCategory = async (category: Omit<Category, 'id'>) => {
@@ -96,6 +101,7 @@ export const useFinance = () => {
     budgets,
     addTransaction,
     deleteTransaction,
+    deleteTransactions,
     addCategory,
     deleteCategory,
     addSubscription,

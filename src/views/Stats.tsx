@@ -1,13 +1,13 @@
 import { useFinance } from '../context/FinanceContext';
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { useState } from 'react';
-import { endOfMonth, getDate } from 'date-fns';
+import { endOfMonth, getDate, subMonths, isSameMonth } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Plus, Edit2, Check, X } from 'lucide-react';
 
 export function Stats() {
   const { transactions, categories, budgets, setBudget } = useFinance();
-  const [activeTab, setActiveTab] = useState<'stats' | 'budgets'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'comparison' | 'budgets'>('stats');
   
   const [editingBudget, setEditingBudget] = useState<string | null>(null);
   const [editBudgetAmount, setEditBudgetAmount] = useState<string>('');
@@ -34,6 +34,21 @@ export function Stats() {
       };
     })
     .sort((a, b) => b.value - a.value); // Sort by highest expense
+
+  // Comparison Data
+  const currentMonthExpenses = expenses.filter(t => isSameMonth(new Date(t.date), new Date()));
+  const lastMonthExpenses = expenses.filter(t => isSameMonth(new Date(t.date), subMonths(new Date(), 1)));
+
+  const comparisonData = categories.map(cat => {
+    const currentTotal = currentMonthExpenses.filter(t => t.categoryId === cat.id).reduce((sum, t) => sum + t.amount, 0);
+    const lastTotal = lastMonthExpenses.filter(t => t.categoryId === cat.id).reduce((sum, t) => sum + t.amount, 0);
+    return {
+      name: cat.name,
+      current: currentTotal,
+      last: lastTotal,
+      emoji: cat.emoji
+    };
+  }).filter(item => item.current > 0 || item.last > 0);
 
   // Logique Pacing Budgétaire
   const today = new Date();
@@ -111,7 +126,13 @@ export function Stats() {
           onClick={() => setActiveTab('stats')}
           className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === 'stats' ? 'bg-white/10 text-white shadow-sm' : 'text-white/50'}`}
         >
-          Statistiques
+          Stats
+        </button>
+        <button 
+          onClick={() => setActiveTab('comparison')}
+          className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === 'comparison' ? 'bg-white/10 text-white shadow-sm' : 'text-white/50'}`}
+        >
+          Comparatif
         </button>
         <button 
           onClick={() => setActiveTab('budgets')}
@@ -189,6 +210,33 @@ export function Stats() {
             </div>
           </>
         )
+      ) : activeTab === 'comparison' ? (
+        <div className="space-y-6">
+          <h2 className="text-xl font-bold">Ce mois-ci vs Mois dernier</h2>
+          {comparisonData.length === 0 ? (
+            <div className="text-center py-20 text-muted">
+              <p>Pas de données pour la comparaison.</p>
+            </div>
+          ) : (
+            <div className="h-80 w-full bg-white/5 rounded-3xl p-4 border border-white/5">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={comparisonData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                  <XAxis dataKey="emoji" tick={{ fill: '#ffffff50' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#ffffff50' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}€`} />
+                  <Tooltip 
+                    cursor={{ fill: '#ffffff05' }}
+                    contentStyle={{ backgroundColor: '#1C1C1E', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                    formatter={(value: any) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(Number(value))}
+                  />
+                  <Legend iconType="circle" />
+                  <Bar dataKey="current" name="Ce mois" fill="#5E5CE6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="last" name="Mois dernier" fill="#8E8E93" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
       ) : (
         /* Budgets View */
         <div>
