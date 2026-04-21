@@ -4,11 +4,20 @@ import { format, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export function Dashboard() {
-  const { transactions } = useFinance();
+  const { transactions, subscriptions } = useFinance();
 
   const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
   const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
   const balance = totalIncome - totalExpense;
+
+  // Calculer le total des charges fixes pour le mois en cours
+  const today = new Date();
+  const currentDay = today.getDate();
+  
+  const totalFixedCharges = subscriptions.reduce((acc, sub) => acc + sub.amount, 0);
+  const upcomingFixedCharges = subscriptions
+    .filter(sub => sub.billingDay >= currentDay)
+    .reduce((acc, sub) => acc + sub.amount, 0);
 
   // Generate chart data for the last 30 days
   const chartData = Array.from({ length: 30 }).map((_, i) => {
@@ -86,6 +95,24 @@ export function Dashboard() {
           </div>
           <p className="text-white/60 text-sm font-medium mb-1 tracking-tight">Dépenses</p>
           <p className="text-2xl font-semibold tracking-tighter text-white/90 font-sans">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(totalExpense)}</p>
+        </div>
+
+        <div className="glass-panel rounded-3xl p-5 col-span-2 mt-2 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
+           <div className="flex justify-between items-center mb-2">
+             <p className="text-white/80 text-sm font-medium tracking-tight flex items-center gap-2">
+               <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+               Charges fixes à venir
+             </p>
+             <p className="text-xs text-white/40">Reste du mois</p>
+           </div>
+           <div className="flex items-end justify-between">
+             <p className="text-3xl font-semibold tracking-tighter text-white font-sans">
+               {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(upcomingFixedCharges)}
+             </p>
+             <p className="text-sm text-white/50 mb-1">
+               sur {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(totalFixedCharges)} au total
+             </p>
+           </div>
         </div>
       </div>
     </div>

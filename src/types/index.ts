@@ -7,6 +7,12 @@ export interface Category {
   color: string;
 }
 
+export interface Budget {
+  id: string;
+  categoryId: string;
+  amount: number;
+}
+
 export interface Subscription {
   id: string;
   title: string;

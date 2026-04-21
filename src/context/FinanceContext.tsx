@@ -23,6 +23,7 @@ export const useFinance = () => {
   const transactions = useLiveQuery(() => db.transactions.orderBy('date').reverse().toArray(), []) || [];
   const categories = useLiveQuery(() => db.categories.toArray(), []) || [];
   const subscriptions = useLiveQuery(() => db.subscriptions.toArray(), []) || [];
+  const budgets = useLiveQuery(() => db.budgets.toArray(), []) || [];
 
   const addTransaction = async (transaction: Omit<Transaction, 'id' | 'date'>) => {
     const newTransaction: Transaction = {
@@ -61,11 +62,29 @@ export const useFinance = () => {
     await db.subscriptions.delete(id);
   };
 
+  const setBudget = async (categoryId: string, amount: number) => {
+    const existing = await db.budgets.where({ categoryId }).first();
+    if (existing) {
+      if (amount <= 0) {
+        await db.budgets.delete(existing.id);
+      } else {
+        await db.budgets.update(existing.id, { amount });
+      }
+    } else if (amount > 0) {
+      await db.budgets.add({
+        id: uuidv4(),
+        categoryId,
+        amount
+      });
+    }
+  };
+
   const clearData = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer toutes les données ?")) {
       await db.transactions.clear();
       await db.categories.clear();
       await db.subscriptions.clear();
+      await db.budgets.clear();
       await db.categories.bulkAdd(defaultCategories);
     }
   };
@@ -74,12 +93,14 @@ export const useFinance = () => {
     transactions,
     categories,
     subscriptions,
+    budgets,
     addTransaction,
     deleteTransaction,
     addCategory,
     deleteCategory,
     addSubscription,
     deleteSubscription,
+    setBudget,
     clearData,
   };
 };

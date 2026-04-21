@@ -1,22 +1,16 @@
 import { useFinance } from '../context/FinanceContext';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useState } from 'react';
-
-// Hardcoded budgets for demonstration (in a real app, this would be in DB)
-const budgets: Record<string, number> = {
-  'food': 400,
-  'transport': 150,
-  'housing': 1200,
-  'utilities': 200,
-  'shopping': 300,
-  'entertainment': 200,
-  'software': 50,
-  'health': 100
-};
+import { endOfMonth, getDate } from 'date-fns';
+import { motion } from 'framer-motion';
+import { Plus, Edit2, Check, X } from 'lucide-react';
 
 export function Stats() {
-  const { transactions, categories } = useFinance();
+  const { transactions, categories, budgets, setBudget } = useFinance();
   const [activeTab, setActiveTab] = useState<'stats' | 'budgets'>('stats');
+  
+  const [editingBudget, setEditingBudget] = useState<string | null>(null);
+  const [editBudgetAmount, setEditBudgetAmount] = useState<string>('');
 
   const expenses = transactions.filter(t => t.type === 'expense');
   const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
@@ -41,24 +35,69 @@ export function Stats() {
     })
     .sort((a, b) => b.value - a.value); // Sort by highest expense
 
+  // Logique Pacing Budgétaire
+  const today = new Date();
+  const daysInMonth = getDate(endOfMonth(today));
+  const currentDay = getDate(today);
+  const monthProgress = currentDay / daysInMonth; // e.g., 0.5 on the 15th
+  const daysRemaining = daysInMonth - currentDay;
+
   // Budgets view data
   const budgetData = categories.map(cat => {
     const spent = categoryTotals[cat.id] || 0;
-    const limit = budgets[cat.id] || 100; // Default limit if not found
-    const percentage = Math.min((spent / limit) * 100, 100);
+    const budgetObj = budgets.find(b => b.categoryId === cat.id);
+    const limit = budgetObj?.amount || 0;
     
-    let statusColor = '#32D74B'; // Green
-    if (percentage >= 100) statusColor = '#FF453A'; // Red
-    else if (percentage >= 80) statusColor = '#FF9F0A'; // Orange
+    // Si pas de limite, on ne l'affiche pas dans la liste principale des budgets (sauf si dépenses)
+    if (limit === 0 && spent === 0) return null;
+
+    let percentage = 0;
+    if (limit > 0) {
+       percentage = Math.min((spent / limit) * 100, 100);
+    }
+    
+    let statusColor = '#32D74B'; // Vert (Safe)
+    if (percentage >= 100) statusColor = '#FF453A'; // Rouge (Depassé)
+    else if (percentage >= 80) statusColor = '#FF9F0A'; // Orange (Attention)
+
+    // Calcul Pacing
+    let pacingMessage = '';
+    let pacingState = 'good'; // good, warning, bad
+    
+    if (limit > 0) {
+      const currentRate = spent / currentDay; // dépenses par jour
+      const projectedTotal = spent + (currentRate * daysRemaining);
+
+      if (spent > limit) {
+         pacingMessage = 'Budget dépassé !';
+         pacingState = 'bad';
+      } else if (projectedTotal > limit) {
+         // À quel jour on dépasse ?
+         const daysToOver = Math.floor((limit - spent) / currentRate);
+         pacingMessage = `À ce rythme, dépassement dans ${daysToOver} jour${daysToOver > 1 ? 's' : ''}`;
+         pacingState = 'warning';
+      } else {
+         pacingMessage = 'Dans les clous';
+         pacingState = 'good';
+      }
+    }
 
     return {
       ...cat,
       spent,
       limit,
       percentage,
-      statusColor
+      statusColor,
+      pacingMessage,
+      pacingState,
+      hasBudget: limit > 0
     };
-  }).filter(b => b.spent > 0 || budgets[b.id]); // Show only active budgets or those with spend
+  }).filter(Boolean) as Array<any>;
+
+  const handleSaveBudget = async (categoryId: string) => {
+    await setBudget(categoryId, Number(editBudgetAmount) || 0);
+    setEditingBudget(null);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -153,10 +192,16 @@ export function Stats() {
       ) : (
         /* Budgets View */
         <div>
-          <h2 className="text-xl font-bold mb-4">Suivi des Budgets</h2>
+          <div className="flex justify-between items-center mb-4">
+             <h2 className="text-xl font-bold">Suivi des Budgets</h2>
+             <span className="text-xs text-white/50 bg-white/5 px-2 py-1 rounded-md">
+               {daysRemaining} jours restants
+             </span>
+          </div>
+          
           <div className="bg-white/5 rounded-3xl p-2 border border-white/5 space-y-2">
             {budgetData.map(budget => (
-              <div key={budget.id} className="p-3">
+              <div key={budget.id} className="p-3 bg-black/20 rounded-2xl border border-white/5">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg bg-white/5">
@@ -164,22 +209,83 @@ export function Stats() {
                     </div>
                     <div>
                       <span className="font-semibold block">{budget.name}</span>
-                      <span className="text-xs text-white/50">{budget.percentage.toFixed(0)}% consommé</span>
+                      {budget.hasBudget && (
+                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-sm ${
+                           budget.pacingState === 'bad' ? 'bg-danger/20 text-danger' :
+                           budget.pacingState === 'warning' ? 'bg-warning/20 text-warning' :
+                           'bg-success/20 text-success'
+                         }`}>
+                           {budget.pacingMessage}
+                         </span>
+                      )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-bold block">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(budget.spent)}</span>
-                    <span className="text-xs text-white/50">/ {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(budget.limit)}</span>
+                  
+                  {editingBudget === budget.id ? (
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="number" 
+                        value={editBudgetAmount}
+                        onChange={(e) => setEditBudgetAmount(e.target.value)}
+                        className="w-20 bg-black/50 border border-white/10 rounded-md px-2 py-1 text-sm outline-none focus:border-accent text-right"
+                        autoFocus
+                      />
+                      <button onClick={() => handleSaveBudget(budget.id)} className="text-success p-1"><Check size={16}/></button>
+                      <button onClick={() => setEditingBudget(null)} className="text-danger p-1"><X size={16}/></button>
+                    </div>
+                  ) : (
+                    <div className="text-right flex items-center gap-2 group">
+                      <div>
+                        <span className="font-bold block text-sm">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(budget.spent)}</span>
+                        <span className="text-xs text-white/50">
+                          {budget.hasBudget ? `/ ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(budget.limit)}` : 'Pas de limite'}
+                        </span>
+                      </div>
+                      <button 
+                        onClick={() => { setEditingBudget(budget.id); setEditBudgetAmount(budget.limit > 0 ? budget.limit.toString() : ''); }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-white/50 hover:text-white"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                {budget.hasBudget && (
+                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mt-2 relative">
+                    {/* Ligne indiquant où on "devrait" être aujourd'hui */}
+                    <div 
+                      className="absolute top-0 bottom-0 w-0.5 bg-white/30 z-10"
+                      style={{ left: `${monthProgress * 100}%` }}
+                    />
+                    <motion.div 
+                      className="h-full rounded-full" 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${budget.percentage}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      style={{ backgroundColor: budget.statusColor }}
+                    />
                   </div>
-                </div>
-                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all duration-500" 
-                    style={{ width: `${budget.percentage}%`, backgroundColor: budget.statusColor }}
-                  />
-                </div>
+                )}
               </div>
             ))}
+
+            {categories.filter(c => !budgetData.find(b => b.id === c.id)).length > 0 && (
+               <div className="pt-4 px-2">
+                 <p className="text-xs text-white/40 mb-2">Autres catégories</p>
+                 <div className="flex flex-wrap gap-2">
+                    {categories.filter(c => !budgetData.find(b => b.id === c.id)).map(cat => (
+                      <button 
+                        key={cat.id}
+                        onClick={() => { setEditingBudget(cat.id); setEditBudgetAmount(''); }}
+                        className="flex items-center gap-1 text-xs bg-white/5 px-2 py-1 rounded-lg border border-white/5 hover:bg-white/10"
+                      >
+                        <Plus size={12} /> {cat.emoji} {cat.name}
+                      </button>
+                    ))}
+                 </div>
+               </div>
+            )}
           </div>
         </div>
       )}
